@@ -23,3 +23,4 @@ def build_gan(generator, discriminator):
     model.add(generator)
     model.add(discriminator)
     return model
+#gg
