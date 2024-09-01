@@ -1,13 +1,16 @@
 import numpy as np
-import hashlib  # Add this import statement
 from gan_model import create_gan_model
 from blockchain import Blockchain, Block
-from traceability import hash_image
+from traceability import hash_image, load_images_from_directory
 
 # Image processing
 target_image_path = "E:/CPE/1-2567/Project/TF/10_food_classes_10_percent/train/sushi/21802.jpg"
-target_image_hash = hash_image(target_image_path)
+target_image_hash = hash_image(target_image_path)  # Now works with the string path
 print(f"Target Image Hash (before training): {target_image_hash}")
+
+# Load images from directory
+dataset_path = "E:/CPE/1-2567/Project/TF/10_food_classes_10_percent/train"
+images = load_images_from_directory(dataset_path)
 
 # Blockchain initialization
 blockchain = Blockchain()
@@ -24,7 +27,7 @@ for i in range(75):  # Simulate 75 epochs or training steps
     if i == 0:
         generated_image_hash = target_image_hash
     else:
-        generated_image_hash = hashlib.sha256(generated_image.tobytes()).hexdigest()
+        generated_image_hash = hash_image(generated_image)
 
     blockchain.add_block(Block(i + 1, f"Trained on image with hash: {generated_image_hash}", blockchain.get_latest_block().hash))
 
@@ -38,13 +41,3 @@ if blockchain.is_image_in_blockchain(target_image_hash):
     print("Target image hash was found in processed images.")
 else:
     print("Target image hash was NOT found in processed images.")
-
-# Output the blockchain for inspection
-print("\n--- Blockchain ---")
-for block in blockchain.chain:
-    print(f"Index: {block.index}")
-    print(f"Hash: {block.hash}")
-    print(f"Previous Hash: {block.previous_hash}")
-    print(f"Data: {block.data}")
-    print(f"Timestamp: {block.timestamp}")
-    print("----------------------")
