@@ -19,14 +19,14 @@ def hash_image(image_data):
 
 # Example usage
 if __name__ == "__main__":
-    image_hash = hash_image("path/to/image.png")
+    image_hash = hash_image("C:/Users/WINDOWS 11 PRO/Pictures/Screenshots/Screenshot 2024-07-01 034636.png")
     print(f"Image Hash: {image_hash}")
 
     # Add the image hash to the blockchain data
     add_block_to_chain(f"Trained on image with hash: {image_hash}")
 
     # Example traceability check
-    user_image_hash = hash_image("path/to/user_image.png")
+    user_image_hash = hash_image("C:/Users/WINDOWS 11 PRO/Pictures/Screenshots/Screenshot 2024-07-01 034636.png")
     block_index = check_image_in_blockchain(user_image_hash)
 
     if block_index is not None:

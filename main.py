@@ -54,7 +54,7 @@ for epoch in range(epochs):
         print(f"{epoch}/{epochs}, {batch}/{int(train_images.shape[0] / batch_size)}, D Loss: {d_loss[0]}, G Loss: {g_loss}")
 
 # Traceability check example
-user_image_hash = hash_image("C:/Users/WINDOWS 11 PRO/Pictures/Screenshots/Screenshot 2024-04-02 142858.jpg")
+user_image_hash = hash_image("C:/Users/WINDOWS 11 PRO/Pictures/Screenshots/Screenshot 2024-07-01 034636.png")
 block_index = check_image_in_blockchain(user_image_hash)
 
 if block_index is not None:
