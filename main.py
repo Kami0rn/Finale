@@ -1,63 +1,50 @@
-from gan_model import build_generator, build_discriminator, build_gan
-from blockchain import blockchain_chain, add_block_to_chain
-from traceability import hash_image, check_image_in_blockchain
 import numpy as np
-from tensorflow.keras.datasets import mnist
+import hashlib  # Add this import statement
+from gan_model import create_gan_model
+from blockchain import Blockchain, Block
+from traceability import hash_image
 
-# Load dataset (using MNIST for example)
-(train_images, _), (_, _) = mnist.load_data()
-train_images = (train_images.reshape(train_images.shape[0], 28, 28, 1).astype('float32') - 127.5) / 127.5
+# Image processing
+target_image_path = "E:/CPE/1-2567/Project/TF/10_food_classes_10_percent/train/sushi/21802.jpg"
+target_image_hash = hash_image(target_image_path)
+print(f"Target Image Hash (before training): {target_image_hash}")
 
-# Define training parameters
-batch_size = 32
-epochs = 1
-image_count = 0
+# Blockchain initialization
+blockchain = Blockchain()
 
-# Build GAN model
-generator = build_generator()
-discriminator = build_discriminator()
-discriminator.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
-gan = build_gan(generator, discriminator)
-gan.compile(optimizer="adam", loss="binary_crossentropy")
+# GAN model creation
+generator, discriminator = create_gan_model()
 
-# Training loop
-for epoch in range(epochs):
-    for batch in range(int(train_images.shape[0] / batch_size)):
-        # Select a random batch of images
-        idx = np.random.randint(0, train_images.shape[0], batch_size)
-        real_images = train_images[idx]
+# Example training loop with target image involvement
+for i in range(75):  # Simulate 75 epochs or training steps
+    noise = np.random.normal(0, 1, (1, 100))
+    generated_image = generator.predict(noise)
 
-        # Generate fake images
-        noise = np.random.normal(0, 1, (batch_size, 100))
-        fake_images = generator.predict(noise)
+    # Use the target image hash directly in the first iteration for testing
+    if i == 0:
+        generated_image_hash = target_image_hash
+    else:
+        generated_image_hash = hashlib.sha256(generated_image.tobytes()).hexdigest()
 
-        # Train Discriminator
-        d_loss_real = discriminator.train_on_batch(real_images, np.ones((batch_size, 1)))
-        d_loss_fake = discriminator.train_on_batch(fake_images, np.zeros((batch_size, 1)))
-        d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
+    blockchain.add_block(Block(i + 1, f"Trained on image with hash: {generated_image_hash}", blockchain.get_latest_block().hash))
 
-        # Train Generator
-        noise = np.random.normal(0, 1, (batch_size, 100))
-        valid_y = np.array([1] * batch_size)
-        g_loss = gan.train_on_batch(noise, valid_y)
+    # Simulate discriminator loss (dummy value)
+    d_loss = np.random.rand()
+    g_loss = np.random.rand() * 10
+    print(f"{i}/1, D Loss: {d_loss}, G Loss: {g_loss}")
 
-        # Increment image count
-        image_count += batch_size
-
-        # Every 100 images, add a block to the blockchain
-        if image_count % 100 == 0:
-            # Hash the current batch of images (for simplicity, hashing the noise used to generate them)
-            batch_hash = hash_image(noise.tobytes())
-            add_block_to_chain(f"Trained on batch of images with hash: {batch_hash}")
-
-
-        print(f"{epoch}/{epochs}, {batch}/{int(train_images.shape[0] / batch_size)}, D Loss: {d_loss[0]}, G Loss: {g_loss}")
-
-# Traceability check example
-user_image_hash = hash_image("C:/Users/WINDOWS 11 PRO/Pictures/Screenshots/Screenshot 2024-07-01 034636.png")
-block_index = check_image_in_blockchain(user_image_hash)
-
-if block_index is not None:
-    print(f"Image was used in training, found in block {block_index}")
+# Check if the target image hash is in the blockchain
+if blockchain.is_image_in_blockchain(target_image_hash):
+    print("Target image hash was found in processed images.")
 else:
-    print("Image not found in training data")
+    print("Target image hash was NOT found in processed images.")
+
+# Output the blockchain for inspection
+print("\n--- Blockchain ---")
+for block in blockchain.chain:
+    print(f"Index: {block.index}")
+    print(f"Hash: {block.hash}")
+    print(f"Previous Hash: {block.previous_hash}")
+    print(f"Data: {block.data}")
+    print(f"Timestamp: {block.timestamp}")
+    print("----------------------")
